@@ -5,7 +5,7 @@
 		<div class="card__slotted">
 			<slot></slot>
 		</div>
-		<Select/>
+		<Select :selectId="title"/>
   </div>
 </template>
 <script>

@@ -1,5 +1,5 @@
 <template>
-  <div class="select">
+  <div v-bind:class="[selectId, 'select']">
 	<div class="select__combo-wrap">
 	<button 
 		class="select__button"
@@ -20,13 +20,18 @@
 		id="contacts" 
 		role="listbox" 
 		aria-label="Select contacts to sync">
-		<li class="select__list-item" 
+		<li 
+		ref="selectAllInput"
+		class="select__list-item" 
 		role="option" 
-		data-opt="opt1">All contacts</li>
+		@click="selectAllContacts"
+		>All contacts</li>
 		<li 
 		class="active select__list-item" 
-		v-for="opt in options" 
-		v-bind:key="opt">
+		v-for="(opt, index) in options" 
+		v-bind:key="opt"
+		:ref="`'option-'${index + 1}`"
+		@click="selectOpt(opt, `'option-'${index + 1}`)">
 			{{ opt }}
 		</li>
 	</ul>
@@ -40,18 +45,35 @@ export default {
 		options: {
 			type: Array,
 			default: () => ['opt 1', 'opt 2', 'opt 3']
+		},
+		selectId: {
+			type: String,
+			default: ''
 		}
 	},
 	data() {
 		return {
-			activeCombobox: false
+			activeCombobox: false,
+			selectedAll: false
 		}
 	},
-	beforeMount() {
-		console.log(this.activeCombobox)
-	},
-	mounted() {
-		console.log(this.activeCombobox)
+	methods: {
+		selectOpt: function(option, idx) {
+			this.$refs[idx][0].classList.toggle('select__list-item--selected')
+		},
+		selectAllContacts: function(){
+			const allLists = Array.from(document.querySelectorAll(`div.${this.selectId} li.select__list-item`));
+			this.selectedAll = !this.selectedAll;
+
+			allLists.forEach((el) => {
+				if (this.selectedAll) {
+					el.classList.contains('select__list-item--selected') ? null : el.classList.add('select__list-item--selected');
+				}
+				else {
+					el.classList.contains('select__list-item--selected') ? el.classList.remove('select__list-item--selected') : null;
+				}
+			})
+		}
 	}
 }
 </script>
@@ -113,7 +135,14 @@ export default {
 				height: 14px;
 				border: 1px solid #7C99B6;
 				border-radius: 3px;
-
+			}
+			&--selected{
+				&::before{
+					background: #7C99B6;
+					background-image: url('../assets/inverseCheck.png');
+					background-repeat: no-repeat;
+					background-position: center;
+				}
 			}
 		}
 		&__label{
