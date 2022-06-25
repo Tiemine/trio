@@ -17,6 +17,8 @@
 <script>
 import Card from './components/Card.vue'
 import SyncButton from './components/SyncButton.vue'
+import axios from 'axios';
+import { updateOptionsStore } from "../src/store/updateOptions"
 
 export default {
   name: 'App',
@@ -24,13 +26,44 @@ export default {
     Card,
     SyncButton
   },
-  data() {
+  data(){
     return{
-      cardSize: ''
+      cardSize: '',
     }
+  },
+  created(){
+    const store = updateOptionsStore();
+    this.getMailChimpContacts()
+    .then(data  => {
+      store.$patch({
+        mailChimpLabels: data
+      })
+    });
+
+    this.getGmailContacts()
+    .then(data  => {
+      store.$patch({
+        gmailLabels: data
+      })
+    });
   },
   mounted(){
     this.cardSize = this.$refs.wrapperDiv.offsetHeight / 4 + 'px';
+  },
+  methods: {
+    getMailChimpContacts: async function() {
+      const result = await axios.get('https://tiemine-trio-project.s3.us-east-2.amazonaws.com/mailchimplLabelList.json');
+
+      //tratar response diferente de 200
+      //criar data com valor da aws
+      console.log(result.data);
+      return result.data
+    },
+    getGmailContacts: async function() {
+      const result = await axios.get('https://tiemine-trio-project.s3.us-east-2.amazonaws.com/gmailLabelList.json')
+      console.log(result.data);
+      return result.data
+    }
   }
 }
 </script>

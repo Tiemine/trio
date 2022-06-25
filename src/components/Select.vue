@@ -39,6 +39,8 @@
 	</div>
 </template>
 <script>
+import { updateOptionsStore } from "../src/store/updateOptions";
+
 export default {
   name: 'Select',
   props: {
