@@ -49,14 +49,26 @@ export default {
   },
   methods: {
     getMailChimpContacts: async function() {
-      const result = await axios.get(`${this.awsUrl}mailchimplLabelList.json`);
-
-      //tratar response diferente de 200
-      this.mailChimpLabels = result.data
+      try {
+        const result = await axios.get(`${this.awsUrl}mailchimplLabelList.json`);
+        if (result.status !== 200){
+          alert("Error while trying to fetch data from service API, try again later");
+        }
+        this.mailChimpLabels = result.data
+      } catch(error) {
+          alert("Error while trying to fetch data from service API, try again later");
+      }
     },
     getGmailContacts: async function() {
-      const result = await axios.get(`${this.awsUrl}gmailLabelList.json`)
-      this.gmailLabels = result.data
+      try {
+        const result = await axios.get(`${this.awsUrl}gmailLabelList.json`)
+        if (result.status !== 200){
+          alert("Error while trying to fetch data from service API, try again later");
+        }
+        this.gmailLabels = result.data
+      } catch(error) {
+        alert("Error while trying to fetch data from service API, try again later");
+      }
     },
     syncContacts: function() {
       const store = updateOptionsStore();
@@ -132,7 +144,7 @@ export default {
     font-family: 'Noto Sans', sans-serif;
     }
 }
-  @media (max-width: 700px) {
+  @media (max-width: 750px) {
     #app .wrapper{
       flex-direction: column;
       align-items: center;
