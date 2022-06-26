@@ -5,7 +5,7 @@
 		<div class="card__slotted">
 			<slot></slot>
 		</div>
-		<Select :selectId="title"/>
+		<Select :selectId="title" :options="options"/>
   </div>
 </template>
 <script>
@@ -21,7 +21,11 @@ export default {
 			type: String,
 			default: ""
 		},
-		title: String
+		title: String,
+		options: {
+			type: Object,
+			default: () => {}
+		},
 	}
 }
 </script>

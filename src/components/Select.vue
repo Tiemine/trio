@@ -15,38 +15,39 @@
 	</button>
 	<span aria-hidden="true" data-trigger="multiselect"></span>
 	<ul
-		class="select__listbox"
+		class=" select__listbox"
 		v-bind:class="{'select__listbox--opened': activeCombobox}"
 		id="contacts" 
 		role="listbox" 
 		aria-label="Select contacts to sync">
 		<li 
 		ref="selectAllInput"
-		class="select__list-item" 
+		class="active select__list-item" 
 		role="option" 
 		@click="selectAllContacts"
 		>All contacts</li>
 		<li 
 		class="active select__list-item" 
-		v-for="(opt, index) in options" 
+		v-for="(opt, key, index) in options"
+		role="option"
 		v-bind:key="opt"
 		:ref="`'option-'${index + 1}`"
 		@click="selectOpt(opt, `'option-'${index + 1}`)">
-			{{ opt }}
+			{{ key }}
 		</li>
 	</ul>
 	</div>
 	</div>
 </template>
 <script>
-import { updateOptionsStore } from "../src/store/updateOptions";
+import { updateOptionsStore } from '../store/updateOptions'
 
 export default {
   name: 'Select',
   props: {
 		options: {
-			type: Array,
-			default: () => ['opt 1', 'opt 2', 'opt 3']
+			type: Object,
+			default: () => {}
 		},
 		selectId: {
 			type: String,
@@ -56,12 +57,14 @@ export default {
 	data() {
 		return {
 			activeCombobox: false,
-			selectedAll: false
+			selectedAll: false,
+			selectedLabels: []
 		}
 	},
 	methods: {
 		selectOpt: function(option, idx) {
-			this.$refs[idx][0].classList.toggle('select__list-item--selected')
+			this.$refs[idx][0].classList.toggle('select__list-item--selected');
+			this.updateObj();
 		},
 		selectAllContacts: function(){
 			const allLists = Array.from(document.querySelectorAll(`div.${this.selectId} li.select__list-item`));
@@ -74,6 +77,24 @@ export default {
 				else {
 					el.classList.contains('select__list-item--selected') ? el.classList.remove('select__list-item--selected') : null;
 				}
+			})
+			this.updateObj();
+		},
+		updateObj: function(){
+			let selectedOpts = Array.from(document.querySelectorAll(`div.${this.selectId} li.select__list-item`));
+			const store = updateOptionsStore();
+			const storeObject = `${this.selectId}Selected`
+
+			selectedOpts.forEach((el, index) => {
+				if(el.classList.contains("select__list-item--selected") && el.textContent !== "All contacts") {
+					this.selectedLabels.includes(el.textContent) ? null : this.selectedLabels.push(el.textContent)
+				}
+				else {
+					this.selectedLabels.splice(index, 1);
+				}
+			})
+			store.$patch({
+				[storeObject]: Array.from(this.selectedLabels)
 			})
 		}
 	}

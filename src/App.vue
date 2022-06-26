@@ -1,16 +1,19 @@
 <template>
   <div class="wrapper" ref="wrapperDiv">
     <div class="column">
-      <Card imgSrc="gmail" title="Gmail">These Gmail contacts will sync to MailChimp</Card>
+      <Card imgSrc="gmail" title="gmail" :options="gmailLabels">These Gmail contacts will sync to MailChimp</Card>
     </div>
     <div class="column-small">
-      <SyncButton/>
+      <SyncButton @syncButtonClicked="syncContacts" :syncTxt="syncBtnText"/>
     </div>
     <div class="column">
       <div class="sync">
-        <Card imgSrc="mailchimp" title="Mailchimp">These Mailchimp contacts will sync to Gmail</Card>
+        <Card imgSrc="mailchimp" title="mailchimp" :options="mailChimpLabels">These Mailchimp contacts will sync to Gmail</Card>
       </div>
     </div>
+  </div>
+  <div v-if="errorMessage" class="error">
+    <p>You need to select at least one contact!</p>
   </div>
 </template>
 
@@ -18,7 +21,7 @@
 import Card from './components/Card.vue'
 import SyncButton from './components/SyncButton.vue'
 import axios from 'axios';
-import { updateOptionsStore } from "../src/store/updateOptions"
+import { updateOptionsStore } from "./store/updateOptions"
 
 export default {
   name: 'App',
@@ -29,40 +32,63 @@ export default {
   data(){
     return{
       cardSize: '',
+      mailChimpLabels: {},
+      gmailLabels: {},
+      labelsPayload: {},
+      syncBtnText: "Sync Contacts",
+      errorMessage: false,
+      awsUrl: 'https://tiemine-trio-project.s3.us-east-2.amazonaws.com/'
     }
   },
-  created(){
-    const store = updateOptionsStore();
-    this.getMailChimpContacts()
-    .then(data  => {
-      store.$patch({
-        mailChimpLabels: data
-      })
-    });
-
-    this.getGmailContacts()
-    .then(data  => {
-      store.$patch({
-        gmailLabels: data
-      })
-    });
-  },
+   created(){
+    this.getMailChimpContacts();
+    this.getGmailContacts();
+  }, 
   mounted(){
     this.cardSize = this.$refs.wrapperDiv.offsetHeight / 4 + 'px';
   },
   methods: {
     getMailChimpContacts: async function() {
-      const result = await axios.get('https://tiemine-trio-project.s3.us-east-2.amazonaws.com/mailchimplLabelList.json');
+      const result = await axios.get(`${this.awsUrl}mailchimplLabelList.json`);
 
       //tratar response diferente de 200
-      //criar data com valor da aws
-      console.log(result.data);
-      return result.data
+      this.mailChimpLabels = result.data
     },
     getGmailContacts: async function() {
-      const result = await axios.get('https://tiemine-trio-project.s3.us-east-2.amazonaws.com/gmailLabelList.json')
-      console.log(result.data);
-      return result.data
+      const result = await axios.get(`${this.awsUrl}gmailLabelList.json`)
+      this.gmailLabels = result.data
+    },
+    syncContacts: function() {
+      const store = updateOptionsStore();
+      let gmailStore = Object.values({...store.gmailSelected});
+      let mailchimpStore = Object.values({...store.mailchimpSelected});
+
+      gmailStore.forEach((label) => {
+        if (mailchimpStore.includes(label)) {
+          this.labelsPayload[label] = [...new Set([
+            ...Object.values({...this.mailChimpLabels[label]}),
+            ...Object.values({...this.gmailLabels[label]})
+            ])];
+        } else {
+          this.labelsPayload[label] = this.gmailLabels[label]
+        }
+      })
+      mailchimpStore.forEach((label) => {
+        if(!gmailStore.includes(label)){
+          this.labelsPayload[label] = [...Object.values({...this.mailChimpLabels[label]})]
+        }
+      })
+      if(Object.keys(this.labelsPayload).length !== 0){
+        this.showSuccessMessage()
+        this.errorMessage = false;
+      }
+      else{
+        this.errorMessage = true;
+      }
+    },
+    showSuccessMessage: function() {
+      this.syncBtnText === "All Done!" ? this.syncBtnText = "Updated!" : this.syncBtnText = "All Done!";
+      console.log({...this.labelsPayload});
     }
   }
 }
@@ -89,20 +115,34 @@ export default {
       align-items: flex-start;
       justify-content: center;
       margin-top: v-bind(cardSize);
-    }
-  }
-  @media screen and (max-width: 600px) {
-    .column{
-      width: 100%;
-    }
-  }
-  @media screen and(min-width: 601px){
-    .column{
-      width: 284px;
-    }
-    .column-small{
       width: 189px;
     }
+    .column {
+      width: 284px
+    }
   }
+  .error{
+    width: 100%;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #f35632;
+    font-size: 18px;
+    font-family: 'Noto Sans', sans-serif;
+    }
 }
+  @media (max-width: 700px) {
+    #app .wrapper{
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 100px;
+      .column{
+        width: 100%;
+      }
+      .column-small{
+        margin: v-bind(cardSize) 0;
+      }
+    }
+  }
 </style>

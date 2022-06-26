@@ -1,13 +1,39 @@
 <template>
   <div class="sync-button">
-		<button class="sync-button__cta" @click="$emit('syncButtonClicked')"></button>
-		<span class="sync-button__text">Sync</span>
+		<button 
+		class="sync-button__cta" 
+		v-bind:class="{ 'sync-button__cta--rotate': firstSync, 'sync-button__cta--rotate-back' : secondSync }" 
+		@click="syncClicked"></button>
+		<span class="sync-button__text">{{ syncTxt }}</span>
   </div>
 </template>
 <script>
 export default {
   name: 'SyncButton',
-	props: {
+  data(){
+	return{
+		firstSync: false,
+		secondSync: false
+	}
+  },
+  props: {
+	syncTxt: {
+		type: String,
+		default: "Sync Contacts"
+		},
+	},
+	methods: {
+		syncClicked: function() {
+			this.$emit('syncButtonClicked');
+			if(this.firstSync) {
+				this.firstSync = false;
+				this.secondSync = true;
+			}
+			else {
+				this.firstSync = true;
+				this.secondSync = false;
+			}
+		}
 	}
 }
 </script>
@@ -31,6 +57,14 @@ export default {
 			}
 			&:hover{
 				cursor: pointer;
+			}
+			&--rotate{
+				transform: rotate(180deg);
+				transition: 0.3s;
+			}
+			&--rotate-back{
+				transform: rotate(-180deg);
+				transition: 0.3s;
 			}
 		}
 		&__text{
