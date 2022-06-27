@@ -8,12 +8,12 @@
 		role="combobox" 
 		aria-controls="contacts" 
 		aria-autocomplete="list" 
-		aria-expanded="false"
+		:aria-expanded="activeCombobox"
 		@click="activeCombobox = !activeCombobox"
 		>
 		Select contacts
 	</button>
-	<span aria-hidden="true" data-trigger="multiselect"></span>
+	<span :aria-hidden="!activeCombobox" data-trigger="multiselect"></span>
 	<ul
 		class=" select__listbox"
 		v-bind:class="{'select__listbox--opened': activeCombobox}"
