@@ -21,7 +21,10 @@ export default {
 			type: String,
 			default: ""
 		},
-		title: String,
+		title: {
+			type: String,
+			default: ""
+		},
 		options: {
 			type: Object,
 			default: () => {}
