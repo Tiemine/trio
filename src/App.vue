@@ -70,38 +70,31 @@ export default {
         alert("Error while trying to fetch data from service API, try again later");
       }
     },
-    syncContacts: function() {
+syncContacts: function() {
       const store = updateOptionsStore();
-      let gmailStore = Object.values({...store.gmailSelected});
-      let mailchimpStore = Object.values({...store.mailchimpSelected});
-
-      gmailStore.forEach((label) => {
-        if (mailchimpStore.includes(label)) {
-          this.labelsPayload[label] = [...new Set([
-            ...Object.values({...this.mailChimpLabels[label]}),
-            ...Object.values({...this.gmailLabels[label]})
-            ])];
-        } else {
-          this.labelsPayload[label] = this.gmailLabels[label]
-        }
-      })
-      mailchimpStore.forEach((label) => {
-        if(!gmailStore.includes(label)){
-          this.labelsPayload[label] = [...Object.values({...this.mailChimpLabels[label]})]
-        }
-      })
-      if(Object.keys(this.labelsPayload).length !== 0){
-        this.showSuccessMessage()
+      const gmailStoreLabels = Object.values({...store.gmailSelected});
+      const mailchimpStoreLabels = Object.values({...store.mailchimpSelected});
+      const selectedLabels = Array.from(new Set([...gmailStoreLabels, ...mailchimpStoreLabels]));
+      let mergedContacts = {}
+      selectedLabels.forEach(label => {
+        let gmailContacts = (gmailStoreLabels.includes(label) ? this.gmailLabels[label] : []).map(el => el);
+        let mailchimpContacts = (mailchimpStoreLabels.includes(label) ? this.mailChimpLabels[label] : []).map(el => el);
+        let mergedContactsArray = Array.from(new Set([...gmailContacts, ...mailchimpContacts]));
+        mergedContacts[label] = mergedContactsArray;
+      });
+      this.labelsPayload = mergedContacts;
+      this.showFeedbackMsg(Object.keys(this.labelsPayload));
+    },    
+    showFeedbackMsg: function(payload){
+      if (payload.length !== 0) {
+        this.syncBtnText === "All Done!" ? this.syncBtnText = "Updated!" : this.syncBtnText = "All Done!";
         this.errorMessage = false;
+        console.log({...this.labelsPayload});
       }
-      else{
-        this.errorMessage = true;
+      else {
+        this.errorMessage = true;        
       }
     },
-    showSuccessMessage: function() {
-      this.syncBtnText === "All Done!" ? this.syncBtnText = "Updated!" : this.syncBtnText = "All Done!";
-      console.log({...this.labelsPayload});
-    }
   }
 }
 </script>

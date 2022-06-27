@@ -67,7 +67,7 @@ export default {
 			this.updateObj();
 		},
 		selectAllContacts: function(){
-			const allLists = Array.from(document.querySelectorAll(`div.${this.selectId} li.select__list-item`));
+			const allLists = [...document.querySelectorAll(`div.${this.selectId} li.select__list-item`)];
 			this.selectedAll = !this.selectedAll;
 
 			allLists.forEach((el) => {
@@ -81,21 +81,16 @@ export default {
 			this.updateObj();
 		},
 		updateObj: function(){
-			let selectedOpts = Array.from(document.querySelectorAll(`div.${this.selectId} li.select__list-item`));
 			const store = updateOptionsStore();
-			const storeObject = `${this.selectId}Selected`
-
-			selectedOpts.forEach((el, index) => {
-				if(el.classList.contains("select__list-item--selected") && el.textContent !== "All contacts") {
-					this.selectedLabels.includes(el.textContent) ? null : this.selectedLabels.push(el.textContent)
-				}
-				else {
-					this.selectedLabels.splice(index, 1);
-				}
-			})
+			const storeObject = `${this.selectId}Selected`;
+			const selectedOpts = Array.from(
+				this.$el.querySelectorAll(".select__list-item--selected")
+				).filter(el => el.textContent.toLowerCase() !== 'all contacts');
+			this.selectedLabels = selectedOpts.map(el => el.textContent);
+			
 			store.$patch({
-				[storeObject]: Array.from(this.selectedLabels)
-			})
+				[storeObject]: this.selectedLabels
+			});
 		}
 	}
 }
