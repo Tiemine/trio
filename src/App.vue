@@ -70,18 +70,22 @@ export default {
         alert("Error while trying to fetch data from service API, try again later");
       }
     },
-syncContacts: function() {
+    syncContacts: function() {
       const store = updateOptionsStore();
       const gmailStoreLabels = Object.values({...store.gmailSelected});
       const mailchimpStoreLabels = Object.values({...store.mailchimpSelected});
+
       const selectedLabels = Array.from(new Set([...gmailStoreLabels, ...mailchimpStoreLabels]));
+
       let mergedContacts = {}
       selectedLabels.forEach(label => {
         let gmailContacts = (gmailStoreLabels.includes(label) ? this.gmailLabels[label] : []).map(el => el);
         let mailchimpContacts = (mailchimpStoreLabels.includes(label) ? this.mailChimpLabels[label] : []).map(el => el);
         let mergedContactsArray = Array.from(new Set([...gmailContacts, ...mailchimpContacts]));
+        
         mergedContacts[label] = mergedContactsArray;
       });
+
       this.labelsPayload = mergedContacts;
       this.showFeedbackMsg(Object.keys(this.labelsPayload));
     },    
